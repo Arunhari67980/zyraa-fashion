@@ -1,0 +1,320 @@
+@import url('https://fonts.googleapis.com/css2?family=Sansation:wght@300;400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==================== BASE STYLES ==================== */
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    text-decoration: none;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: #f8f7f4;
+    font-family: 'Sansation', sans-serif;
+    font-weight: 300;
+    font-style: normal;
+    color: #2c2c2c;
+    line-height: 1.6;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  a:hover {
+    opacity: 0.8;
+  }
+
+  button {
+    font-family: 'Sansation', sans-serif;
+    font-weight: 300;
+    cursor: pointer;
+    border: none;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 300;
+    letter-spacing: 0.05em;
+  }
+
+  input, textarea, select {
+    font-family: 'Sansation', sans-serif;
+    font-weight: 300;
+  }
+}
+
+/* ==================== COMPONENT STYLES ==================== */
+
+@layer components {
+  /* Button Components */
+  .btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 300;
+    border: none;
+    font-family: 'Sansation', sans-serif;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .btn-primary {
+    background-color: #b8860b;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: #9a7009;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(184, 134, 11, 0.3);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    background-color: transparent;
+    color: #2c2c2c;
+    border: 2px solid #e0d9cc;
+  }
+
+  .btn-secondary:hover {
+    background-color: #f4e4c1;
+    border-color: #b8860b;
+  }
+
+  .btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+  }
+
+  /* Card Component */
+  .card {
+    background: white;
+    border: 1px solid #e0d9cc;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .card:hover {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
+    border-color: #b8860b;
+  }
+
+  /* Input Component */
+  .input-field {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e0d9cc;
+    border-radius: 0.5rem;
+    font-family: 'Sansation', sans-serif;
+    font-weight: 300;
+    transition: all 0.3s ease;
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: #b8860b;
+    box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.1);
+  }
+
+  /* Badge Component */
+  .badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 400;
+  }
+
+  .badge-primary {
+    background-color: #b8860b;
+    color: white;
+  }
+
+  .badge-success {
+    background-color: #4caf50;
+    color: white;
+  }
+
+  .badge-warning {
+    background-color: #ff9800;
+    color: white;
+  }
+
+  .badge-info {
+    background-color: #2196f3;
+    color: white;
+  }
+
+  .badge-error {
+    background-color: #d32f2f;
+    color: white;
+  }
+
+  /* Flex Utilities */
+  .flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Text Utilities */
+  .text-primary {
+    color: #2c2c2c;
+  }
+
+  .text-secondary {
+    color: #b8860b;
+  }
+
+  .text-muted {
+    color: #666;
+  }
+
+  /* Gradient Utilities */
+  .gradient-primary {
+    background: linear-gradient(135deg, #2c2c2c 0%, #3a3a3a 100%);
+  }
+
+  .gradient-accent {
+    background: linear-gradient(135deg, #b8860b 0%, #d4af37 100%);
+  }
+
+  /* Hover Effects */
+  .hover-lift {
+    transition: all 0.3s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .hover-shadow:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  .hover-scale:hover {
+    transform: scale(1.05);
+  }
+}
+
+/* ==================== ANIMATIONS ==================== */
+
+/* Overlay for mobile menu */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  z-index: 999;
+}
+
+.overlay.show {
+  display: block;
+}
+
+/* Modern animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Utility animations */
+.animate-slide-up {
+  animation: slideInUp 0.6s ease-out;
+}
+
+.animate-fade {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.animate-slide-down {
+  animation: slideInDown 0.6s ease-out;
+}
+
+.animate-scale {
+  animation: scaleIn 0.4s ease-out;
+}
+
+/* Responsive text */
+@media (max-width: 768px) {
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+}
