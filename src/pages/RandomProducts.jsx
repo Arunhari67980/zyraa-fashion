@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import AddToCartButton from '../components/AddToCartButton';
+import QuickViewModal from '../components/QuickViewModal';
 import { getAllProducts } from '../services/productsService';
 
 export default function RandomProducts() {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [sortBy, setSortBy] = useState('newest');
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
 
   useEffect(() => {
     const allProducts = getAllProducts();
@@ -85,7 +87,10 @@ export default function RandomProducts() {
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                  <button className="w-full py-2 bg-white text-[#2c2c2c] rounded font-light hover:bg-[#b8860b] hover:text-white transition-all duration-300">
+                  <button 
+                    onClick={() => setQuickViewProduct(product)}
+                    className="w-full py-2 bg-white text-[#2c2c2c] rounded font-light hover:bg-[#b8860b] hover:text-white transition-all duration-300"
+                  >
                     Quick View
                   </button>
                 </div>
@@ -135,6 +140,13 @@ export default function RandomProducts() {
           </button>
         </div>
       </div>
+
+      {/* Quick View Modal */}
+      <QuickViewModal 
+        product={quickViewProduct}
+        isOpen={!!quickViewProduct}
+        onClose={() => setQuickViewProduct(null)}
+      />
     </div>
   );
 }

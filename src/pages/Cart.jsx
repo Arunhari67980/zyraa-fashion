@@ -134,7 +134,7 @@ export default function Cart() {
               </div>
 
               <Link
-                to="/delivery"
+                to="/payment"
                 className="block w-full text-center px-6 py-3 bg-[#b8860b] text-white rounded hover:bg-[#9a7009] transition-colors duration-300 mb-3 font-light"
               >
                 Checkout

@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import AddToCartButton from '../components/AddToCartButton';
+import QuickViewModal from '../components/QuickViewModal';
 
 export default function ProductPage() {
   const { category } = useParams();
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
 
   const categoryNames = {
     dresses: 'Dresses',
@@ -104,7 +106,10 @@ export default function ProductPage() {
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                  <button className="w-full py-2 bg-white text-[#2c2c2c] rounded font-light hover:bg-[#b8860b] hover:text-white transition-all duration-300">
+                  <button 
+                    onClick={() => setQuickViewProduct(product)}
+                    className="w-full py-2 bg-white text-[#2c2c2c] rounded font-light hover:bg-[#b8860b] hover:text-white transition-all duration-300"
+                  >
                     Quick View
                   </button>
                 </div>
@@ -152,6 +157,13 @@ export default function ProductPage() {
           Load More Products
         </button>
       </div>
+
+      {/* Quick View Modal */}
+      <QuickViewModal 
+        product={quickViewProduct}
+        isOpen={!!quickViewProduct}
+        onClose={() => setQuickViewProduct(null)}
+      />
     </div>
   );
 }

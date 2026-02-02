@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 
-export default function AddToCartButton({ product, className = '' }) {
+export default function AddToCartButton({ product, className = '', onAdd }) {
   const { addToCart } = useCart();
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -11,10 +11,15 @@ export default function AddToCartButton({ product, className = '' }) {
       name: product.name,
       price: product.price,
       image: product.image,
+      quantity: product.quantity || 1,
+      size: product.size || 'M',
     });
     
     setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 2000);
+    setTimeout(() => {
+      setShowSuccess(false);
+      if (onAdd) onAdd();
+    }, 1500);
   };
 
   return (

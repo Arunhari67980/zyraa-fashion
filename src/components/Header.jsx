@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Search, ShoppingCart } from 'lucide-react';
+import { Menu, X, Search, ShoppingCart, User, LogOut } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const navigate = useNavigate();
   const { getCartCount } = useCart();
+  const { user, isAuthenticated, logout } = useAuth();
   const cartCount = getCartCount();
 
   const toggleMenu = () => {
@@ -85,10 +88,10 @@ export default function Header() {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
           <div className="relative group">
-            <button className="text-[#2c2c2c] hover:text-[#b8860b] transition-colors font-light text-sm md:text-base duration-300">
+            <button className="text-[#2c2c2c] hover:text-[#b8860b] transition-colors font-light text-sm md:text-base duration-300 py-2">
               Collections
             </button>
-            <div className="hidden group-hover:block absolute left-0 bg-white shadow-lg rounded mt-2 min-w-48 py-2 z-50 border border-[#e0d9cc]">
+            <div className="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute left-0 top-full bg-white shadow-lg rounded-lg min-w-48 py-2 z-50 border border-[#e0d9cc] transition-all duration-200 max-h-80 overflow-y-auto">
               {categories.map((cat) => (
                 <Link
                   key={cat.path}
@@ -125,6 +128,55 @@ export default function Header() {
               </span>
             )}
           </button>
+
+          {/* User Menu / Login Button */}
+          {isAuthenticated ? (
+            <div className="relative hidden md:block">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center gap-2 text-[#2c2c2c] hover:text-[#b8860b] p-2 transition-colors duration-300"
+              >
+                <div className="w-8 h-8 rounded-full bg-[#b8860b] flex items-center justify-center text-white text-sm font-medium">
+                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+              </button>
+              
+              {showUserMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-[#e0d9cc] py-2 z-50">
+                  <div className="px-4 py-2 border-b border-[#e0d9cc]">
+                    <p className="text-sm font-medium text-[#2c2c2c]">{user?.name}</p>
+                    <p className="text-xs text-[#999]">{user?.email}</p>
+                  </div>
+                  <Link
+                    to="/history"
+                    onClick={() => setShowUserMenu(false)}
+                    className="block px-4 py-2 text-sm text-[#2c2c2c] hover:bg-[#f4e4c1] transition-colors"
+                  >
+                    Order History
+                  </Link>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setShowUserMenu(false);
+                      navigate('/');
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                  >
+                    <LogOut size={16} />
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              className="hidden md:flex items-center gap-2 px-4 py-2 bg-[#b8860b] text-white rounded-lg hover:bg-[#9a7009] transition-colors duration-300 text-sm font-light"
+            >
+              <User size={18} />
+              Sign In
+            </Link>
+          )}
         </div>
       </header>
 
@@ -235,6 +287,46 @@ export default function Header() {
             >
               Confirm Order
             </Link>
+
+            <hr className="my-4" />
+
+            {/* Auth Links in Mobile */}
+            {isAuthenticated ? (
+              <>
+                <div className="px-4 py-3 bg-[#f4e4c1] rounded mb-2">
+                  <p className="text-sm font-medium text-[#2c2c2c]">{user?.name}</p>
+                  <p className="text-xs text-[#999]">{user?.email}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    logout();
+                    handleMenuItemClick();
+                    navigate('/');
+                  }}
+                  className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 rounded font-light text-sm transition-colors duration-200 flex items-center gap-2"
+                >
+                  <LogOut size={18} />
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  onClick={handleMenuItemClick}
+                  className="block px-4 py-3 bg-[#b8860b] text-white text-center rounded font-light text-sm transition-colors duration-200 hover:bg-[#9a7009]"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/signup"
+                  onClick={handleMenuItemClick}
+                  className="block px-4 py-3 text-[#2c2c2c] text-center border border-[#e0d9cc] rounded font-light text-sm transition-colors duration-200 hover:bg-[#f4e4c1] mt-2"
+                >
+                  Create Account
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>

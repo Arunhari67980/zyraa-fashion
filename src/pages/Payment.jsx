@@ -1,21 +1,44 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { CreditCard, DollarSign, CheckCircle as CheckCircleIcon } from 'lucide-react';
+import { useCart } from '../context/CartContext';
 
 export default function Payment() {
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [orderConfirmed, setOrderConfirmed] = useState(false);
+  const [confirmedOrder, setConfirmedOrder] = useState(null);
+  const { cartItems, getCartTotal, placeOrder } = useCart();
+  const navigate = useNavigate();
+
+  const subtotal = getCartTotal();
+  const shipping = 100;
+  const tax = subtotal * 0.18;
+  const total = subtotal + shipping + tax;
 
   const handlePayment = (e) => {
     e.preventDefault();
-    setTimeout(() => {
-      setOrderConfirmed(true);
-    }, 1000);
+    
+    if (cartItems.length === 0) {
+      alert('Your cart is empty!');
+      navigate('/');
+      return;
+    }
+
+    // Create the order
+    const order = placeOrder({
+      paymentMethod: paymentMethod,
+      shipping: shipping,
+      tax: tax,
+    });
+
+    setConfirmedOrder(order);
+    setOrderConfirmed(true);
   };
 
-  if (orderConfirmed) {
+  if (orderConfirmed && confirmedOrder) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#f8f7f4] via-white to-[#f8f7f4] py-12 px-6 md:px-12 flex items-center justify-center">
-        <div className="text-center max-w-md card animate-scale">
+        <div className="text-center max-w-lg card animate-scale">
           <div className="mb-6 mx-auto">
             <CheckCircleIcon size={80} className="text-[#4caf50] mx-auto" />
           </div>
@@ -25,13 +48,42 @@ export default function Payment() {
           <p className="text-[#666] font-light mb-8 text-lg">
             Your order has been confirmed. You will receive a confirmation email shortly.
           </p>
-          <div className="bg-[#f4e4c1] p-4 rounded-lg mb-6">
-            <p className="text-sm text-[#999] font-light">Order Number</p>
-            <p className="text-2xl text-[#b8860b] font-light">ZYRAA{Math.random().toString().slice(2, 10)}</p>
+          
+          {/* Order Details */}
+          <div className="bg-[#f4e4c1] p-6 rounded-lg mb-6 text-left">
+            <div className="text-center mb-4">
+              <p className="text-sm text-[#999] font-light">Order Number</p>
+              <p className="text-2xl text-[#b8860b] font-light">{confirmedOrder.id}</p>
+            </div>
+            
+            <div className="border-t border-[#d4c4a8] pt-4 mt-4">
+              <p className="text-sm text-[#999] font-light mb-2">Items Ordered</p>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {confirmedOrder.items.map((item) => (
+                  <div key={item.id} className="flex justify-between text-sm">
+                    <span className="text-[#2c2c2c] font-light">{item.name} × {item.quantity || 1}</span>
+                    <span className="text-[#666] font-light">₹{((typeof item.price === 'string' ? parseFloat(item.price.replace('₹', '').replace(',', '')) : item.price) * (item.quantity || 1)).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-[#d4c4a8] pt-4 mt-4">
+              <div className="flex justify-between text-lg">
+                <span className="text-[#2c2c2c] font-light">Total Paid</span>
+                <span className="text-[#b8860b] font-medium">₹{(confirmedOrder.total + shipping + tax).toFixed(2)}</span>
+              </div>
+            </div>
           </div>
-          <a href="/" className="btn btn-primary btn-lg inline-block">
-            Return to Home
-          </a>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link to="/history" className="btn btn-primary btn-lg flex-1">
+              View Order History
+            </Link>
+            <Link to="/" className="btn btn-secondary btn-lg flex-1">
+              Continue Shopping
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -178,24 +230,43 @@ export default function Payment() {
                 Order Summary
               </h3>
               
-              <div className="space-y-3 mb-6">
+              {/* Cart Items */}
+              {cartItems.length > 0 ? (
+                <div className="space-y-3 mb-6 max-h-48 overflow-y-auto">
+                  {cartItems.map((item) => {
+                    const price = typeof item.price === 'string'
+                      ? parseFloat(item.price.replace('₹', '').replace(',', ''))
+                      : item.price;
+                    return (
+                      <div key={item.id} className="flex justify-between text-sm">
+                        <span className="text-[#666] font-light">{item.name} × {item.quantity || 1}</span>
+                        <span className="text-[#2c2c2c]">₹{(price * (item.quantity || 1)).toFixed(2)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-[#999] font-light text-sm mb-6">Your cart is empty</p>
+              )}
+
+              <div className="space-y-3 mb-6 border-t border-[#e0d9cc] pt-4">
                 <div className="flex justify-between text-[#666] font-light">
                   <span>Subtotal</span>
-                  <span className="text-[#2c2c2c]">₹5,000</span>
+                  <span className="text-[#2c2c2c]">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-[#666] font-light">
                   <span>Shipping</span>
-                  <span className="text-[#2c2c2c]">₹100</span>
+                  <span className="text-[#2c2c2c]">₹{shipping.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-[#666] font-light">
                   <span>Tax (18%)</span>
-                  <span className="text-[#2c2c2c]">₹918</span>
+                  <span className="text-[#2c2c2c]">₹{tax.toFixed(2)}</span>
                 </div>
               </div>
 
               <div className="border-t-2 border-[#e0d9cc] pt-4 flex justify-between mb-6">
                 <span className="text-[#2c2c2c] font-light">Total</span>
-                <span className="text-2xl text-[#b8860b] font-light">₹6,018</span>
+                <span className="text-2xl text-[#b8860b] font-light">₹{total.toFixed(2)}</span>
               </div>
 
               {/* Security Info */}
