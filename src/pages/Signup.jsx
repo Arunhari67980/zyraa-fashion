@@ -68,7 +68,7 @@ export default function Signup() {
 
     setLoading(true);
 
-    const result = signup({
+    const result = await signup({
       name: formData.name,
       email: formData.email,
       phone: formData.phone,
@@ -76,7 +76,10 @@ export default function Signup() {
     });
 
     if (result.success) {
-      navigate('/');
+      // Show success message and redirect to login
+      setTimeout(() => {
+        navigate('/login');
+      }, 1500);
     } else {
       setError(result.message);
     }
@@ -117,9 +120,16 @@ export default function Signup() {
           <h2 className="text-xl font-light text-[#2c2c2c] mb-5 text-center">Create Account</h2>
 
           {/* Error Message */}
-          {error && (
+          {error && !error.includes('successfully') && (
             <div className="mb-3 p-2 bg-red-50 border border-red-200 text-red-600 rounded-lg text-xs font-light animate-fade-in">
               {error}
+            </div>
+          )}
+
+          {/* Success Message */}
+          {error && error.includes('successfully') && (
+            <div className="mb-3 p-2 bg-green-50 border border-green-200 text-green-600 rounded-lg text-xs font-light animate-fade-in">
+              ✓ {error}
             </div>
           )}
 

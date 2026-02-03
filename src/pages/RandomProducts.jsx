@@ -8,11 +8,17 @@ export default function RandomProducts() {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [sortBy, setSortBy] = useState('newest');
   const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const allProducts = getAllProducts();
-    setProducts(allProducts);
-    setFilteredProducts(allProducts);
+    async function fetchProducts() {
+      setLoading(true);
+      const allProducts = await getAllProducts();
+      setProducts(allProducts);
+      setFilteredProducts(allProducts);
+      setLoading(false);
+    }
+    fetchProducts();
   }, []);
 
   useEffect(() => {
@@ -66,32 +72,43 @@ export default function RandomProducts() {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-          {filteredProducts.map((product, idx) => (
-            <div 
-              key={product.id} 
-              className="group card animate-slide-up"
-              style={{ animationDelay: `${(idx % 4) * 0.1}s` }}
-            >
-              {/* Product Image */}
-              <div className="relative overflow-hidden bg-gradient-to-br from-[#f0ebe0] to-[#e8dccf] h-80 rounded-lg mb-4 border border-[#e0d9cc] group-hover:border-[#b8860b]">
-                <span className="absolute top-3 right-3 bg-[#b8860b] text-white text-xs px-3 py-1 rounded-full z-10 font-light">
-                  New
-                </span>
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/300x400?text=' + encodeURIComponent(product.name);
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                  <button 
-                    onClick={() => setQuickViewProduct(product)}
-                    className="w-full py-2 bg-white text-[#2c2c2c] rounded font-light hover:bg-[#b8860b] hover:text-white transition-all duration-300"
-                  >
-                    Quick View
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin inline-block w-12 h-12 border-4 border-[#b8860b] border-t-transparent rounded-full"></div>
+            <p className="text-[#666] mt-4">Loading products...</p>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-[#666] text-lg">No products available yet.</p>
+            <p className="text-[#999] text-sm mt-2">Add products to your Supabase database.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            {filteredProducts.map((product, idx) => (
+              <div 
+                key={product.id} 
+                className="group card animate-slide-up"
+                style={{ animationDelay: `${(idx % 4) * 0.1}s` }}
+              >
+                {/* Product Image */}
+                <div className="relative overflow-hidden bg-gradient-to-br from-[#f0ebe0] to-[#e8dccf] h-80 rounded-lg mb-4 border border-[#e0d9cc] group-hover:border-[#b8860b]">
+                  <span className="absolute top-3 right-3 bg-[#b8860b] text-white text-xs px-3 py-1 rounded-full z-10 font-light">
+                    New
+                  </span>
+                  <img
+                    src={product.image_url || product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/300x400?text=' + encodeURIComponent(product.name);
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                    <button 
+                      onClick={() => setQuickViewProduct(product)}
+                      className="w-full py-2 bg-white text-[#2c2c2c] rounded font-light hover:bg-[#b8860b] hover:text-white transition-all duration-300"
+                    >
+                      Quick View
                   </button>
                 </div>
               </div>
@@ -113,10 +130,10 @@ export default function RandomProducts() {
                 {/* Price */}
                 <div className="flex items-baseline gap-2 mb-4">
                   <p className="text-[#b8860b] font-light text-xl">
-                    ₹{product.price.toFixed(2)}
+                    ₹{Number(product.price).toFixed(2)}
                   </p>
                   <p className="text-[#999] font-light text-sm line-through">
-                    ₹{(product.price * 1.25).toFixed(2)}
+                    ₹{(Number(product.price) * 1.25).toFixed(2)}
                   </p>
                   <span className="text-[#4caf50] font-light text-xs">
                     -20%
@@ -131,14 +148,8 @@ export default function RandomProducts() {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Load More */}
-        <div className="mt-12 text-center">
-          <button className="btn btn-primary btn-lg">
-            Load More ↓
-          </button>
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Quick View Modal */}

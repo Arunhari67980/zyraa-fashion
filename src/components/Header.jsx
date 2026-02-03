@@ -169,13 +169,21 @@ export default function Header() {
               )}
             </div>
           ) : (
-            <Link
-              to="/login"
-              className="hidden md:flex items-center gap-2 px-4 py-2 bg-[#b8860b] text-white rounded-lg hover:bg-[#9a7009] transition-colors duration-300 text-sm font-light"
-            >
-              <User size={18} />
-              Sign In
-            </Link>
+            <div className="hidden md:flex items-center gap-2">
+              <Link
+                to="/login"
+                className="flex items-center gap-2 px-4 py-2 bg-[#b8860b] text-white rounded-lg hover:bg-[#9a7009] transition-colors duration-300 text-sm font-light"
+              >
+                <User size={18} />
+                Sign In
+              </Link>
+              <Link
+                to="/admin-login"
+                className="flex items-center gap-2 px-4 py-2 bg-[#333] text-white rounded-lg hover:bg-[#555] transition-colors duration-300 text-sm font-light"
+              >
+                Admin
+              </Link>
+            </div>
           )}
         </div>
       </header>
@@ -324,6 +332,13 @@ export default function Header() {
                   className="block px-4 py-3 text-[#2c2c2c] text-center border border-[#e0d9cc] rounded font-light text-sm transition-colors duration-200 hover:bg-[#f4e4c1] mt-2"
                 >
                   Create Account
+                </Link>
+                <Link
+                  to="/admin-login"
+                  onClick={handleMenuItemClick}
+                  className="block px-4 py-3 bg-[#333] text-white text-center rounded font-light text-sm transition-colors duration-200 hover:bg-[#555] mt-2"
+                >
+                  Admin Login
                 </Link>
               </>
             )}

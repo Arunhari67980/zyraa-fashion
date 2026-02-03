@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AddToCartButton from '../components/AddToCartButton';
-import { initializeProducts, getNewArrivals } from '../services/productsService';
+import { getNewArrivals } from '../services/productsService';
 
 export default function Home() {
   const [newArrivals, setNewArrivals] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize products in localStorage
-    initializeProducts();
-    // Get new arrivals from localStorage
-    setNewArrivals(getNewArrivals());
+    async function fetchNewArrivals() {
+      setLoading(true);
+      const products = await getNewArrivals();
+      setNewArrivals(products);
+      setLoading(false);
+    }
+    fetchNewArrivals();
   }, []);
 
   const categories = [
@@ -70,31 +74,42 @@ export default function Home() {
           🆕 New Arrivals
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {newArrivals.map((product) => (
-            <div key={product.id} className="group">
-              <div className="relative overflow-hidden bg-gradient-to-br from-[#f0ebe0] to-[#e8dccf] shadow-md hover:shadow-xl transition-all duration-500 h-80 rounded-lg border border-[#e0d9cc] overflow-hidden">
-                <div className="absolute top-4 right-4 bg-[#b8860b] text-white px-4 py-2 rounded text-sm font-light z-20">New</div>
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 brightness-100 group-hover:brightness-90"
-                  onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/400x500?text=' + encodeURIComponent(product.name);
-                  }}
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin inline-block w-12 h-12 border-4 border-[#b8860b] border-t-transparent rounded-full"></div>
+            <p className="text-[#666] mt-4">Loading new arrivals...</p>
+          </div>
+        ) : newArrivals.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-[#666] text-lg">No products available yet. Add some products in Supabase!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {newArrivals.map((product) => (
+              <div key={product.id} className="group">
+                <div className="relative overflow-hidden bg-gradient-to-br from-[#f0ebe0] to-[#e8dccf] shadow-md hover:shadow-xl transition-all duration-500 h-80 rounded-lg border border-[#e0d9cc] overflow-hidden">
+                  <div className="absolute top-4 right-4 bg-[#b8860b] text-white px-4 py-2 rounded text-sm font-light z-20">New</div>
+                  <img
+                    src={product.image_url || product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 brightness-100 group-hover:brightness-90"
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/400x500?text=' + encodeURIComponent(product.name);
+                    }}
+                  />
+                </div>
+                <h3 className="text-[#2c2c2c] font-light text-lg mt-5 group-hover:text-[#b8860b] transition-colors duration-300">
+                  {product.name}
+                </h3>
+                <p className="text-[#b8860b] font-light text-xl mt-2">₹{Number(product.price).toFixed(2)}</p>
+                <AddToCartButton 
+                  product={product} 
+                  className="mt-4 w-full py-2 text-sm rounded"
                 />
               </div>
-              <h3 className="text-[#2c2c2c] font-light text-lg mt-5 group-hover:text-[#b8860b] transition-colors duration-300">
-                {product.name}
-              </h3>
-              <p className="text-[#b8860b] font-light text-xl mt-2">₹{product.price.toFixed(2)}</p>
-              <AddToCartButton 
-                product={product} 
-                className="mt-4 w-full py-2 text-sm rounded"
-              />
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* CTA Section */}

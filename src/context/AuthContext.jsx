@@ -1,124 +1,196 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import * as authService from '../services/authService';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    try {
-      const saved = localStorage.getItem('user');
-      if (saved && saved !== 'undefined' && saved !== 'null') {
-        const parsed = JSON.parse(saved);
-        return typeof parsed === 'object' ? parsed : null;
-      }
-      return null;
-    } catch (e) {
-      // Invalid JSON in localStorage, clear it
-      localStorage.removeItem('user');
-      return null;
-    }
-  });
+  // User Auth
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  // Admin Auth
+  const [admin, setAdmin] = useState(null);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  
+  const [loading, setLoading] = useState(true);
 
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    try {
-      const saved = localStorage.getItem('user');
-      if (saved && saved !== 'undefined' && saved !== 'null') {
-        const parsed = JSON.parse(saved);
-        return typeof parsed === 'object' && parsed !== null;
-      }
-      return false;
-    } catch (e) {
-      return false;
-    }
-  });
-
+  // Check if user/admin is logged in on mount
   useEffect(() => {
-    if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('user');
-    }
-  }, [user]);
+    const checkAuth = async () => {
+      try {
+        // Check user session
+        const userSession = localStorage.getItem('userSession');
+        if (userSession) {
+          const userData = JSON.parse(userSession);
+          setUser(userData);
+          setIsAuthenticated(true);
+        }
 
-  const signup = useCallback((userData) => {
-    // Get existing users from localStorage
-    const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
-    
-    // Check if email already exists
-    const emailExists = existingUsers.some(u => u.email === userData.email);
-    if (emailExists) {
-      return { success: false, message: 'Email already registered' };
-    }
-
-    // Create new user
-    const newUser = {
-      id: `USER-${Date.now()}`,
-      name: userData.name,
-      email: userData.email,
-      password: userData.password, // In production, this should be hashed
-      phone: userData.phone || '',
-      createdAt: new Date().toISOString(),
+        // Check admin session
+        const adminSession = localStorage.getItem('adminSession');
+        if (adminSession) {
+          const adminData = JSON.parse(adminSession);
+          setAdmin(adminData);
+          setIsAdminAuthenticated(true);
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error);
+        localStorage.removeItem('userSession');
+        localStorage.removeItem('adminSession');
+      } finally {
+        setLoading(false);
+      }
     };
 
-    // Save to users list
-    existingUsers.push(newUser);
-    localStorage.setItem('users', JSON.stringify(existingUsers));
-
-    // Log the user in (without password in state)
-    const { password, ...userWithoutPassword } = newUser;
-    setUser(userWithoutPassword);
-    setIsAuthenticated(true);
-
-    return { success: true, message: 'Account created successfully' };
+    checkAuth();
   }, []);
 
-  const login = useCallback((email, password) => {
-    const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
-    
-    const foundUser = existingUsers.find(
-      u => u.email === email && u.password === password
+  const signup = useCallback(async (userData) => {
+    const { success, message, data } = await authService.signUp(
+      userData.email,
+      userData.password,
+      userData.name,
+      userData.phone
     );
 
-    if (foundUser) {
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
+    if (success && data) {
+      return { success: true, message };
+    }
+
+    return { success: false, message };
+  }, []);
+
+  const login = useCallback(async (email, password) => {
+    const { success, message, data } = await authService.login(email, password);
+
+    if (success && data) {
+      setUser(data);
       setIsAuthenticated(true);
-      return { success: true, message: 'Login successful' };
+      localStorage.setItem('userSession', JSON.stringify(data));
+      return { success: true, message };
     }
 
-    return { success: false, message: 'Invalid email or password' };
+    return { success: false, message };
   }, []);
 
-  const logout = useCallback(() => {
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('user');
-  }, []);
+  const adminLogin = useCallback(async (email, password) => {
+    const { success, message, data } = await authService.adminLogin(email, password);
 
-  const updateProfile = useCallback((updatedData) => {
-    const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
-    const userIndex = existingUsers.findIndex(u => u.id === user.id);
-    
-    if (userIndex !== -1) {
-      existingUsers[userIndex] = { ...existingUsers[userIndex], ...updatedData };
-      localStorage.setItem('users', JSON.stringify(existingUsers));
-      
-      const { password, ...userWithoutPassword } = existingUsers[userIndex];
-      setUser(userWithoutPassword);
-      return { success: true, message: 'Profile updated successfully' };
+    if (success && data) {
+      setAdmin(data);
+      setIsAdminAuthenticated(true);
+      localStorage.setItem('adminSession', JSON.stringify(data));
+      return { success: true, message };
     }
 
-    return { success: false, message: 'Failed to update profile' };
-  }, [user]);
+    return { success: false, message };
+  }, []);
+
+  const logout = useCallback(async () => {
+    const { success, message } = await authService.logout();
+
+    if (success) {
+      setUser(null);
+      setIsAuthenticated(false);
+      localStorage.removeItem('userSession');
+    }
+
+    return { success, message };
+  }, []);
+
+  const adminLogout = useCallback(async () => {
+    const { success, message } = await authService.logout();
+
+    if (success) {
+      setAdmin(null);
+      setIsAdminAuthenticated(false);
+      localStorage.removeItem('adminSession');
+    }
+
+    return { success, message };
+  }, []);
+
+  const createPasswordForUser = useCallback(async (userId, password) => {
+    return await authService.createPasswordForUser(userId, password);
+  }, []);
+
+  const updateProfile = useCallback(
+    async (updatedData) => {
+      if (!user) {
+        return { success: false, message: 'No user logged in' };
+      }
+
+      const { success, message } = await authService.updateUserProfile(
+        user.id,
+        updatedData.full_name,
+        updatedData.phone
+      );
+
+      if (success) {
+        setUser({
+          ...user,
+          full_name: updatedData.full_name,
+          phone: updatedData.phone,
+        });
+      }
+
+      return { success, message };
+    },
+    [user]
+  );
+
+  const addModerator = useCallback(
+    async (email, name) => {
+      if (!admin || admin.role !== 'admin') {
+        return { success: false, message: 'Only admins can add moderators' };
+      }
+
+      return await authService.addModerator(admin.id, email, name);
+    },
+    [admin]
+  );
+
+  const getModerators = useCallback(async () => {
+    if (!admin) {
+      return { success: false, message: 'Not authenticated', data: null };
+    }
+
+    return await authService.getModerators();
+  }, [admin]);
+
+  const deactivateModerator = useCallback(async (moderatorId) => {
+    if (!admin || admin.role !== 'admin') {
+      return { success: false, message: 'Only admins can deactivate moderators' };
+    }
+
+    return await authService.deactivateModerator(moderatorId);
+  }, [admin]);
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isAuthenticated,
-      signup,
-      login,
-      logout,
-      updateProfile,
-    }}>
+    <AuthContext.Provider
+      value={{
+        // User auth
+        user,
+        isAuthenticated,
+        signup,
+        login,
+        logout,
+        updateProfile,
+        createPasswordForUser,
+        
+        // Admin auth
+        admin,
+        isAdminAuthenticated,
+        adminLogin,
+        adminLogout,
+        addModerator,
+        getModerators,
+        deactivateModerator,
+        
+        // Global
+        loading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

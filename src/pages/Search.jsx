@@ -1,27 +1,14 @@
 import React, { useState } from 'react';
 import { Search as SearchIcon } from 'lucide-react';
+import { searchProducts } from '../services/productsService';
 
 export default function Search() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const allProducts = [
-    { id: 1, name: 'Classic Dress', category: 'dresses' },
-    { id: 2, name: 'Leather Jacket', category: 'jackets' },
-    { id: 3, name: 'Blue Jeans', category: 'jeans' },
-    { id: 4, name: 'Black Pants', category: 'pants' },
-    { id: 5, name: 'Party Dress', category: 'partywear' },
-    { id: 6, name: 'Cotton Shorts', category: 'shorts' },
-    { id: 7, name: 'Denim Skirt', category: 'skirts' },
-    { id: 8, name: 'Wool Sweater', category: 'sweaters' },
-    { id: 9, name: 'Tank Top', category: 'tanktops' },
-    { id: 10, name: 'White T-Shirt', category: 'whitetshirt' },
-    { id: 11, name: 'Winter Coat', category: 'coats' },
-    { id: 12, name: 'Black Dress', category: 'black' },
-  ];
-
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
     setHasSearched(true);
 
@@ -30,10 +17,10 @@ export default function Search() {
       return;
     }
 
-    const results = allProducts.filter((product) =>
-      product.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    setLoading(true);
+    const results = await searchProducts(searchQuery);
     setSearchResults(results);
+    setLoading(false);
   };
 
   return (
@@ -70,7 +57,12 @@ export default function Search() {
         {/* Results */}
         {hasSearched && (
           <div className="animate-slide-up">
-            {searchResults.length > 0 ? (
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin inline-block w-12 h-12 border-4 border-[#b8860b] border-t-transparent rounded-full"></div>
+                <p className="text-[#666] mt-4">Searching...</p>
+              </div>
+            ) : searchResults.length > 0 ? (
               <div>
                 <div className="flex items-center gap-3 mb-8">
                   <h2 className="text-2xl font-light text-[#2c2c2c]">

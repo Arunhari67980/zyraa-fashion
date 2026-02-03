@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import AddToCartButton from '../components/AddToCartButton';
 import QuickViewModal from '../components/QuickViewModal';
+import { getProductsByCategory } from '../services/productsService';
 
 export default function ProductPage() {
-  const { category } = useParams();
+  const location = useLocation();
   const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Extract category from URL path
+  const category = location.pathname.substring(1); // Remove leading slash
 
   const categoryNames = {
     dresses: 'Dresses',
@@ -40,13 +46,15 @@ export default function ProductPage() {
   const categoryName = categoryNames[category] || 'Products';
   const categoryImage = categoryImages[category] || '/pics/review_image_dress.jpg';
 
-  // Mock products data
-  const products = Array.from({ length: 8 }, (_, i) => ({
-    id: `${category}-${i + 1}`,
-    name: `${categoryName} Style ${i + 1}`,
-    price: 2000 + i * 500,
-    image: categoryImage,
-  }));
+  useEffect(() => {
+    async function fetchProducts() {
+      setLoading(true);
+      const data = await getProductsByCategory(category);
+      setProducts(data);
+      setLoading(false);
+    }
+    fetchProducts();
+  }, [category]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f8f7f4] via-white to-[#f8f7f4] py-12 px-6 md:px-12">
@@ -85,70 +93,82 @@ export default function ProductPage() {
 
       {/* Products Grid */}
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-          {products.map((product, idx) => (
-            <div 
-              key={product.id} 
-              className="group card animate-slide-up"
-              style={{ animationDelay: `${idx * 0.1}s` }}
-            >
-              {/* Product Image */}
-              <div className="relative overflow-hidden bg-gradient-to-br from-[#f0ebe0] to-[#e8dccf] h-80 rounded-lg mb-4 border border-[#e0d9cc] group-hover:border-[#b8860b]">
-                <span className="absolute top-3 right-3 bg-[#b8860b] text-white text-xs px-3 py-1 rounded-full z-10 font-light">
-                  Sale
-                </span>
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/300x400?text=' + encodeURIComponent(product.name);
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                  <button 
-                    onClick={() => setQuickViewProduct(product)}
-                    className="w-full py-2 bg-white text-[#2c2c2c] rounded font-light hover:bg-[#b8860b] hover:text-white transition-all duration-300"
-                  >
-                    Quick View
-                  </button>
-                </div>
-              </div>
-
-              {/* Product Info */}
-              <div>
-                <h3 className="text-[#2c2c2c] font-light text-lg group-hover:text-[#b8860b] transition-colors duration-300 mb-2 line-clamp-2">
-                  {product.name}
-                </h3>
-                
-                {/* Rating */}
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex gap-1 text-[#b8860b] text-sm">★★★★★</div>
-                  <span className="text-[#999] font-light text-xs">(128)</span>
-                </div>
-
-                {/* Price */}
-                <div className="flex items-baseline gap-2 mb-4">
-                  <p className="text-[#b8860b] font-light text-xl">
-                    ₹{product.price.toFixed(2)}
-                  </p>
-                  <p className="text-[#999] font-light text-sm line-through">
-                    ₹{(product.price * 1.2).toFixed(2)}
-                  </p>
-                  <span className="text-[#4caf50] font-light text-xs">
-                    -15%
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin inline-block w-12 h-12 border-4 border-[#b8860b] border-t-transparent rounded-full"></div>
+            <p className="text-[#666] mt-4">Loading products...</p>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-[#666] text-lg">No products found in this category.</p>
+            <p className="text-[#999] text-sm mt-2">Add products to "{categoryName}" category in Supabase.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            {products.map((product, idx) => (
+              <div 
+                key={product.id} 
+                className="group card animate-slide-up"
+                style={{ animationDelay: `${idx * 0.1}s` }}
+              >
+                {/* Product Image */}
+                <div className="relative overflow-hidden bg-gradient-to-br from-[#f0ebe0] to-[#e8dccf] h-80 rounded-lg mb-4 border border-[#e0d9cc] group-hover:border-[#b8860b]">
+                  <span className="absolute top-3 right-3 bg-[#b8860b] text-white text-xs px-3 py-1 rounded-full z-10 font-light">
+                    Sale
                   </span>
+                  <img
+                    src={product.image_url || product.image || categoryImage}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/300x400?text=' + encodeURIComponent(product.name);
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                    <button 
+                      onClick={() => setQuickViewProduct(product)}
+                      className="w-full py-2 bg-white text-[#2c2c2c] rounded font-light hover:bg-[#b8860b] hover:text-white transition-all duration-300"
+                    >
+                      Quick View
+                    </button>
+                  </div>
                 </div>
 
-                {/* Add to Cart */}
-                <AddToCartButton 
-                  product={product} 
-                  className="mt-2 w-full py-2 text-sm"
-                />
+                {/* Product Info */}
+                <div>
+                  <h3 className="text-[#2c2c2c] font-light text-lg group-hover:text-[#b8860b] transition-colors duration-300 mb-2 line-clamp-2">
+                    {product.name}
+                  </h3>
+                  
+                  {/* Rating */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex gap-1 text-[#b8860b] text-sm">★★★★★</div>
+                    <span className="text-[#999] font-light text-xs">({product.reviews || 0})</span>
+                  </div>
+
+                  {/* Price */}
+                  <div className="flex items-baseline gap-2 mb-4">
+                    <p className="text-[#b8860b] font-light text-xl">
+                      ₹{Number(product.price).toFixed(2)}
+                    </p>
+                    <p className="text-[#999] font-light text-sm line-through">
+                      ₹{(Number(product.price) * 1.2).toFixed(2)}
+                    </p>
+                    <span className="text-[#4caf50] font-light text-xs">
+                      -15%
+                    </span>
+                  </div>
+
+                  {/* Add to Cart */}
+                  <AddToCartButton 
+                    product={product} 
+                    className="mt-2 w-full py-2 text-sm"
+                  />
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Load More Section */}

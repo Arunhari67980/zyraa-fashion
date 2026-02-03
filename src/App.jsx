@@ -18,10 +18,13 @@ import RandomProducts from './pages/RandomProducts';
 import Cart from './pages/Cart';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
+import SupabaseTest from './components/SupabaseTest';
 
 function AppContent() {
   const location = useLocation();
-  const hideFooter = ['/login', '/signup'].includes(location.pathname);
+  const hideFooter = ['/login', '/signup', '/admin-login', '/admin/dashboard'].includes(location.pathname);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f8f7f4] to-[#faf9f6] font-sansation">
@@ -66,6 +69,11 @@ function AppContent() {
           {/* Authentication */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
+          {/* Testing */}
+          <Route path="/test-supabase" element={<SupabaseTest />} />
         </Routes>
       </main>
       {!hideFooter && <Footer />}
